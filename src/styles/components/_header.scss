@@ -1,0 +1,28 @@
+.header {
+  display: flex;
+  justify-content: flex-end;
+  padding: 10px 30px;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 10;
+}
+
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.header-link {
+  @include button-reset;
+  font-size: $font-size-small;
+  color: var(--text-secondary);
+  font-family: $font-family;
+  text-decoration: none;
+
+  &:hover {
+    color: var(--text-primary);
+  }
+}

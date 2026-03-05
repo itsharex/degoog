@@ -1,0 +1,10 @@
+{
+  "engines": {
+    "google": true,
+    "duckduckgo": true,
+    "bing": true,
+    "brave": true,
+    "wikipedia": true,
+    "reddit": true
+  }
+}

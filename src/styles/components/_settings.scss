@@ -1,0 +1,245 @@
+.settings-page-body {
+  min-height: 100vh;
+}
+
+.settings-page {
+  max-width: 560px;
+  margin: 0 auto;
+  padding: 24px 20px 48px;
+
+  @media (min-width: 768px) {
+    padding: 40px 32px 64px;
+  }
+}
+
+.settings-page-header {
+  margin-bottom: 32px;
+}
+
+.settings-page-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--text-secondary);
+  text-decoration: none;
+  font-size: $font-size-base;
+  margin-bottom: 24px;
+
+  &:hover {
+    color: var(--text-primary);
+  }
+
+  svg {
+    flex-shrink: 0;
+  }
+}
+
+.settings-page-title {
+  font-size: 28px;
+  font-weight: 400;
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.settings-page-main {
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+}
+
+.settings-section {
+  padding: 24px 0;
+  border-bottom: 1px solid var(--border-light);
+
+  &:last-of-type {
+    border-bottom: none;
+  }
+}
+
+.settings-section-heading {
+  font-size: 18px;
+  font-weight: 500;
+  color: var(--text-primary);
+  margin: 0 0 4px;
+}
+
+.settings-section .settings-desc {
+  margin: 0 0 16px;
+}
+
+.settings-page-actions {
+  padding-top: 16px;
+}
+
+.settings-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  @include flex-center;
+  background: var(--overlay-bg);
+}
+
+.settings-panel {
+  background: var(--bg-light);
+  border-radius: 12px;
+  width: 420px;
+  max-width: 90vw;
+  overflow: hidden;
+}
+
+.settings-header {
+  @include flex-between;
+  padding: 20px 24px;
+  border-bottom: 1px solid var(--border-light);
+
+  h2 {
+    font-size: 18px;
+    color: var(--text-primary);
+    margin: 0;
+    font-weight: 400;
+  }
+}
+
+.settings-close {
+  @include button-reset;
+  font-size: 24px;
+  color: var(--text-secondary);
+  line-height: 1;
+
+  &:hover {
+    color: var(--text-primary);
+  }
+}
+
+.settings-body {
+  padding: 20px 24px;
+
+  h3 {
+    font-size: 16px;
+    color: var(--text-primary);
+    margin: 0 0 4px;
+    font-weight: 500;
+  }
+}
+
+.settings-section-title {
+  margin-top: 20px !important;
+}
+
+.settings-desc {
+  font-size: $font-size-small;
+  color: var(--text-secondary);
+  margin: 0 0 16px;
+}
+
+.engine-toggles {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.engine-toggle {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  gap: 12px;
+
+  input {
+    display: none;
+  }
+}
+
+.toggle-slider {
+  width: 40px;
+  height: 20px;
+  background: var(--border);
+  border-radius: 10px;
+  position: relative;
+  transition: background $transition-fast;
+  flex-shrink: 0;
+
+  &::after {
+    content: "";
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: var(--white);
+    transition: transform $transition-fast;
+  }
+
+  input:checked + & {
+    background: $blue;
+
+    &::after {
+      transform: translateX(20px);
+    }
+  }
+}
+
+.toggle-label {
+  font-size: $font-size-base;
+  color: var(--text-primary);
+}
+
+.theme-select-wrap {
+  margin-top: 4px;
+}
+
+.theme-select {
+  background: var(--bg-light);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--text-primary);
+  font-size: $font-size-base;
+  font-family: $font-family;
+  padding: 8px 12px;
+  width: 100%;
+  cursor: pointer;
+  outline: none;
+
+  &:focus {
+    border-color: $blue;
+  }
+}
+
+.settings-footer {
+  padding: 16px 24px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-top: 1px solid var(--border-light);
+}
+
+.settings-cache-clear {
+  background: transparent;
+  color: var(--text-secondary);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 8px 16px;
+  font-size: $font-size-small;
+  cursor: pointer;
+  font-family: $font-family;
+
+  &:hover {
+    color: var(--text-primary);
+    border-color: var(--border);
+  }
+}
+
+.settings-save {
+  background: $blue;
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  padding: 8px 24px;
+  font-size: $font-size-base;
+  cursor: pointer;
+  font-family: $font-family;
+
+  &:hover {
+    background: $blue-hover;
+  }
+}

@@ -1,0 +1,44 @@
+@mixin flex-center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+@mixin flex-between {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+@mixin search-bar-base {
+  display: flex;
+  align-items: center;
+  background: var(--search-bar-bg);
+  border-radius: $search-bar-radius;
+  height: $search-bar-height;
+  padding: 0 14px;
+  transition: box-shadow $transition-fast, border-color $transition-fast;
+
+  &:hover,
+  &:focus-within {
+    background: var(--search-bar-bg-hover);
+  }
+
+  &.ac-open {
+    border-radius: $search-bar-radius $search-bar-radius 0 0;
+  }
+}
+
+@mixin button-reset {
+  background: none;
+  border: none;
+  cursor: pointer;
+  outline: none;
+  padding: 0;
+}
+
+@mixin truncate {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}

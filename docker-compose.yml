@@ -1,0 +1,12 @@
+services:
+  degoog:
+    build:
+      context: .
+      network: host
+    volumes:
+      - ./data:/data
+    ports:
+      - "4455:4444"
+    environment:
+      - PORT=4444
+    restart: unless-stopped

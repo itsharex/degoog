@@ -1,0 +1,22 @@
+{
+  "name": "degoog",
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "bun run --watch src/server.ts",
+    "build:css": "bun run build-css.ts",
+    "build": "bun run build:css",
+    "stop": "kill $(lsof -t -i:4444)",
+    "start": "bun run src/server.ts",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "cheerio": "^1.0.0",
+    "hono": "^4.7.0"
+  },
+  "devDependencies": {
+    "@types/bun": "^1.2.0",
+    "sass": "^1.85.0",
+    "typescript": "^5.7.0"
+  }
+}
