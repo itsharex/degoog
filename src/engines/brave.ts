@@ -1,77 +1,99 @@
-import type { SearchEngine, SearchResult, TimeFilter, SettingField } from "../types";
-import { getSettings } from "../plugin-settings";
+import * as cheerio from "cheerio";
+import type { SearchEngine, SearchResult, TimeFilter } from "../types";
+import { getRandomUserAgent } from "../user-agents";
 
-interface BraveApiResult {
-  title?: string;
-  url?: string;
-  description?: string;
-}
+const BASE_URL = "https://search.brave.com/";
+const TIME_RANGE_MAP: Record<string, string> = {
+  day: "pd",
+  week: "pw",
+  month: "pm",
+  year: "py",
+};
 
-interface BraveApiResponse {
-  web?: { results?: BraveApiResult[] };
+function buildCookieString(): string {
+  const parts = [
+    "safesearch=moderate",
+    "useLocation=0",
+    "summarizer=0",
+    "country=us",
+    "ui_lang=en-us",
+  ];
+  return parts.join("; ");
 }
 
 export class BraveEngine implements SearchEngine {
   name = "Brave Search";
   bangShortcut = "brave";
 
-  settingsSchema: SettingField[] = [
-    {
-      key: "apiKey",
-      label: "API Key",
-      type: "password",
-      secret: true,
-      required: true,
-      placeholder: "Enter your Brave Search API key",
-      description: "Get one at https://api.search.brave.com",
-    },
-  ];
-
-  configure(_settings: Record<string, string>): void {}
-
   async executeSearch(
     query: string,
     page: number = 1,
     timeFilter?: TimeFilter,
   ): Promise<SearchResult[]> {
-    const stored = await getSettings("brave");
-    const apiKey = stored["apiKey"] ?? "";
-    if (!apiKey) return [];
-
-    const count = 20;
-    const offset = Math.min(page - 1, 9);
-    const params = new URLSearchParams({
+    const args: Record<string, string> = {
       q: query,
-      count: String(count),
-      offset: String(offset),
-    });
-    if (timeFilter && timeFilter !== "any") {
-      const freshMap: Record<string, string> = {
-        hour: "pd",
-        day: "pd",
-        week: "pw",
-        month: "pm",
-        year: "py",
-      };
-      if (freshMap[timeFilter]) params.set("freshness", freshMap[timeFilter]);
+      source: "web",
+    };
+    if (page > 1) {
+      args.offset = String(page - 1);
     }
-    const url = `https://api.search.brave.com/res/v1/web/search?${params.toString()}`;
+    if (timeFilter && timeFilter !== "any" && TIME_RANGE_MAP[timeFilter]) {
+      args.tf = TIME_RANGE_MAP[timeFilter];
+    }
+    const url = `${BASE_URL}search?${new URLSearchParams(args).toString()}`;
+
     const response = await fetch(url, {
       headers: {
-        "X-Subscription-Token": apiKey,
-        Accept: "application/json",
+        "User-Agent": getRandomUserAgent(),
+        "Accept-Encoding": "gzip, deflate",
+        Accept:
+          "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+        "Accept-Language": "en-US,en;q=0.9",
+        Cookie: buildCookieString(),
       },
+      redirect: "follow",
     });
-    if (!response.ok) return [];
-    const data = (await response.json()) as BraveApiResponse;
-    const raw = data.web?.results ?? [];
-    return raw
-      .filter((r) => r.url && r.title)
-      .map((r) => ({
-        title: r.title ?? "",
-        url: r.url ?? "",
-        snippet: r.description ?? "",
-        source: this.name,
-      }));
+
+    const html = await response.text();
+    const $ = cheerio.load(html);
+    const results: SearchResult[] = [];
+
+    $('div[data-type="web"]').each(
+      (_, el) => {
+        const $el = $(el);
+        const linkEl = $el.find('a[href^="http"]').first();
+        const href = linkEl.attr("href") ?? "";
+        const titleEl = $el.find(
+          'div.search-snippet-title, div[class*="search-snippet-title"]',
+        ).first();
+        const contentEl = $el.find("div.generic-snippet div.content").first();
+
+        try {
+          const parsed = new URL(href, BASE_URL);
+          if (parsed.origin === new URL(BASE_URL).origin) return;
+        } catch {
+          return;
+        }
+        if (!href) return;
+
+        const title = titleEl.text().trim();
+        const snippet = contentEl.text().trim();
+        if (!title) return;
+
+        const thumbnail = $el
+          .find('a[class*="thumbnail"] img[src]')
+          .first()
+          .attr("src");
+        results.push({
+          title,
+          url: href,
+          snippet,
+          source: this.name,
+          ...(thumbnail ? { thumbnail } : {}),
+        });
+      },
+    );
+
+    return results;
   }
 }
