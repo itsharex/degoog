@@ -4,6 +4,10 @@ Search aggregator that queries multiple engines and shows results in one place. 
 
 **Still in beta.** Not intended for production use yet.
 
+<div align="center">
+  <img width="800" src="screenshots/home.png">
+</div>
+
 ## Run
 
 **Create a data folder and make sure it has the right user permissions**
