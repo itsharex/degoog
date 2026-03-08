@@ -74,6 +74,7 @@ export async function getSearchBarActions(): Promise<SearchBarAction[]> {
   const out: SearchBarAction[] = [];
   for (const { pluginId, action } of storedActions) {
     const settings = await getSettings(`plugin-${pluginId}`);
+    if (settings["disabled"] === "true") continue;
     const label = (settings.buttonLabel ?? "").trim() || action.label;
     out.push({ ...action, label });
   }

@@ -1,4 +1,4 @@
-const CACHE_NAME = "degoog-v1";
+const CACHE_NAME = "degoog-v__APP_VERSION__";
 
 self.addEventListener("install", (event) => {
   self.skipWaiting();

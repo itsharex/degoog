@@ -1,5 +1,8 @@
 import { proxyImageUrl } from "./url.js";
 import { escapeHtml, cleanHostname } from "./utils.js";
+import { getEngines } from "./engines.js";
+
+const RSS_NEWS_ENGINE_ID = "rss-news";
 
 let feedPage = 1;
 let loading = false;
@@ -55,6 +58,12 @@ export async function initHomeFeed() {
   const container = document.getElementById("home-news-feed");
   const main = document.getElementById("main-home");
   if (!container || !main) return;
+
+  const engines = await getEngines();
+  if (engines[RSS_NEWS_ENGINE_ID] === false) {
+    container.remove();
+    return;
+  }
 
   main.classList.add("has-feed");
 

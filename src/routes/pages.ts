@@ -22,14 +22,15 @@ function buildOpenSearchXml(origin: string): string {
 function themeCssPlaceholder(): string {
   const theme = getActiveTheme();
   if (!theme?.manifest.css) return "";
-  return '<link rel="stylesheet" href="/theme/style.css">';
+  return `<link rel="stylesheet" href="/theme/style.css?v=${pkg.version}">`;
 }
 
 function pluginAssetsPlaceholder(): string {
+  const v = pkg.version;
   const parts: string[] = [];
-  if (getAllPluginCss()) parts.push('<link rel="stylesheet" href="/api/plugins/styles.css">');
+  if (getAllPluginCss()) parts.push(`<link rel="stylesheet" href="/api/plugins/styles.css?v=${v}">`);
   for (const folder of getPluginScriptFolders()) {
-    parts.push(`<script type="module" src="/plugins/${folder}/script.js"><\/script>`);
+    parts.push(`<script type="module" src="/plugins/${folder}/script.js?v=${v}"><\/script>`);
   }
   return parts.join("\n  ");
 }
@@ -53,16 +54,20 @@ router.get("/", async (c) => {
 
 router.get("/search", async (c) => {
   const override = await getThemeHtml("search");
-  if (override) return c.html(override);
+  if (override) return c.html(override.replaceAll("__APP_VERSION__", pkg.version));
   const html = await Bun.file("src/public/search.html").text();
   const out = html
+    .replaceAll("__APP_VERSION__", pkg.version)
     .replace("__THEME_CSS__", themeCssPlaceholder())
     .replace("__PLUGIN_ASSETS__", pluginAssetsPlaceholder());
   return c.html(out);
 });
 router.get("/settings", async (c) => {
   const html = await Bun.file("src/public/settings.html").text();
-  return c.html(html.replace("__THEME_CSS__", themeCssPlaceholder()));
+  const out = html
+    .replaceAll("__APP_VERSION__", pkg.version)
+    .replace("__THEME_CSS__", themeCssPlaceholder());
+  return c.html(out);
 });
 
 router.get("/api/engines", (c) => {
