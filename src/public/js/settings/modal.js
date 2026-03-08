@@ -14,7 +14,133 @@ function escapeHtml(str) {
   return d.innerHTML;
 }
 
-function renderField(field, currentValue) {
+function parseUrlListValue(raw, defaultUrls) {
+  const emptyDefaults = defaultUrls ?? [];
+  if (Array.isArray(raw)) {
+    const valid = raw.filter((u) => typeof u === "string" && u.startsWith("http"));
+    return valid;
+  }
+  if (!raw || String(raw).trim() === "") return emptyDefaults;
+  try {
+    const parsed = JSON.parse(raw);
+    if (!Array.isArray(parsed)) return emptyDefaults;
+    const valid = parsed.filter((u) => typeof u === "string" && u.startsWith("http"));
+    return valid;
+  } catch {
+    return emptyDefaults;
+  }
+}
+
+function renderRssUrlListField(field, ext) {
+  const defaultUrls = ext.defaultFeedUrls ?? [];
+  const urls = parseUrlListValue(ext.settings[field.key], defaultUrls);
+  const descHtml = field.description
+    ? `<p class="ext-field-desc">${escapeHtml(field.description)}</p>`
+    : "";
+  const listItems = urls
+    .map(
+      (url) =>
+        `<li class="ext-field-urllist-item" data-url="${escapeHtml(url)}">
+          <span class="ext-field-urllist-url">${escapeHtml(url)}</span>
+          <button type="button" class="ext-field-urllist-remove" aria-label="Remove">×</button>
+        </li>`,
+    )
+    .join("");
+  return `
+    <div class="ext-field" data-key="${escapeHtml(field.key)}" data-type="urllist">
+      <label class="ext-field-label">${escapeHtml(field.label)}</label>
+      <ul class="ext-field-urllist">${listItems}</ul>
+      <div class="ext-field-urllist-add">
+        <input type="url" class="ext-field-input ext-field-urllist-input" placeholder="${escapeHtml(field.placeholder || "https://example.com/feed.xml")}" autocomplete="off">
+        <button type="button" class="ext-field-urllist-add-btn">Add</button>
+      </div>
+      <input type="hidden" id="field-${escapeHtml(field.key)}" class="ext-field-urllist-value">
+      ${descHtml}
+    </div>`;
+}
+
+function initRssUrlList(container) {
+  const field = container.querySelector(".ext-field[data-type='urllist']");
+  if (!field) return;
+  const listEl = field.querySelector(".ext-field-urllist");
+  const addInput = field.querySelector(".ext-field-urllist-input");
+  const addBtn = field.querySelector(".ext-field-urllist-add-btn");
+  const hiddenInput = field.querySelector(".ext-field-urllist-value");
+  if (!listEl || !addInput || !addBtn || !hiddenInput) return;
+
+  const initialUrls = [...listEl.querySelectorAll(".ext-field-urllist-item")].map(
+    (li) => li.dataset.url || "",
+  ).filter(Boolean);
+  hiddenInput.value = JSON.stringify(initialUrls);
+
+  function getUrls() {
+    try {
+      const parsed = JSON.parse(hiddenInput.value || "[]");
+      return Array.isArray(parsed) ? parsed.filter((u) => typeof u === "string") : [];
+    } catch {
+      return [];
+    }
+  }
+
+  function setUrls(urls) {
+    hiddenInput.value = JSON.stringify(urls);
+  }
+
+  function addUrl(url) {
+    const trimmed = url.trim();
+    if (!trimmed.startsWith("http")) return;
+    try {
+      new URL(trimmed);
+    } catch {
+      return;
+    }
+    const urls = getUrls();
+    if (urls.includes(trimmed)) return;
+    urls.push(trimmed);
+    setUrls(urls);
+    const li = document.createElement("li");
+    li.className = "ext-field-urllist-item";
+    li.dataset.url = trimmed;
+    li.innerHTML = `<span class="ext-field-urllist-url">${escapeHtml(trimmed)}</span><button type="button" class="ext-field-urllist-remove" aria-label="Remove">×</button>`;
+    li.querySelector(".ext-field-urllist-remove").addEventListener("click", () => {
+      const u = getUrls().filter((x) => x !== trimmed);
+      setUrls(u);
+      li.remove();
+    });
+    listEl.appendChild(li);
+  }
+
+  field.querySelectorAll(".ext-field-urllist-remove").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const li = btn.closest(".ext-field-urllist-item");
+      const url = li?.dataset?.url;
+      if (!url) return;
+      const urls = getUrls().filter((u) => u !== url);
+      setUrls(urls);
+      li.remove();
+    });
+  });
+
+  addBtn.addEventListener("click", () => {
+    const val = addInput.value;
+    if (val) {
+      addUrl(val);
+      addInput.value = "";
+    }
+  });
+  addInput.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      const val = addInput.value;
+      if (val) {
+        addUrl(val);
+        addInput.value = "";
+      }
+    }
+  });
+}
+
+function renderField(field, currentValue, ext) {
   const isSecret = field.secret === true;
   const isSet = currentValue === "__SET__";
   const displayValue = isSecret ? "" : (currentValue || "");
@@ -26,6 +152,10 @@ function renderField(field, currentValue) {
   const descHtml = field.description
     ? `<p class="ext-field-desc">${escapeHtml(field.description)}</p>`
     : "";
+
+  if (ext?.id === "rss-news" && field.key === "urls") {
+    return renderRssUrlListField(field, ext);
+  }
 
   if (field.type === "toggle") {
     const checked = currentValue === "true" ? "checked" : "";
@@ -87,6 +217,17 @@ function collectValues() {
       return;
     }
 
+    if (type === "urllist") {
+      const hidden = fieldEl.querySelector(".ext-field-urllist-value");
+      try {
+        const parsed = hidden?.value ? JSON.parse(hidden.value) : [];
+        values[key] = Array.isArray(parsed) ? parsed : [];
+      } catch {
+        values[key] = [];
+      }
+      return;
+    }
+
     const input = fieldEl.querySelector("textarea") || fieldEl.querySelector("input");
     const val = input.value.trim();
 
@@ -106,8 +247,10 @@ export function openModal(ext) {
   statusEl.textContent = "";
 
   bodyEl.innerHTML = ext.settingsSchema
-    .map((field) => renderField(field, ext.settings[field.key] ?? ""))
+    .map((field) => renderField(field, ext.settings[field.key] ?? "", ext))
     .join("");
+
+  initRssUrlList(bodyEl);
 
   bodyEl.querySelectorAll(".ext-field-input--configured").forEach((input) => {
     input.addEventListener("focus", () => input.classList.remove("ext-field-input--configured"), { once: true });

@@ -11,6 +11,7 @@ import {
   setSettings,
   mergeSecrets,
   maskSecrets,
+  type SettingValue,
 } from "../plugin-settings";
 import {
   generateAISummary,
@@ -56,7 +57,7 @@ router.get("/api/extensions", async (c) => {
 
 router.post("/api/extensions/:id/settings", async (c) => {
   const id = c.req.param("id");
-  const body = await c.req.json<Record<string, string>>();
+  const body = await c.req.json<Record<string, unknown>>();
 
   const [engines, plugins, slotMeta, themes] = await Promise.all([
     getEngineExtensionMeta(),
@@ -74,10 +75,13 @@ router.post("/api/extensions/:id/settings", async (c) => {
 
   const schemaKeys = new Set(ext.settingsSchema.map((f) => f.key));
   schemaKeys.add("disabled");
-  const filtered: Record<string, string> = {};
+  const filtered: Record<string, SettingValue> = {};
   for (const [key, value] of Object.entries(body)) {
-    if (schemaKeys.has(key) && typeof value === "string") {
+    if (!schemaKeys.has(key)) continue;
+    if (typeof value === "string") {
       filtered[key] = value;
+    } else if (Array.isArray(value) && value.every((v) => typeof v === "string")) {
+      filtered[key] = value as string[];
     }
   }
 
@@ -89,9 +93,11 @@ router.post("/api/extensions/:id/settings", async (c) => {
     const slug = id.slice(7);
     const gateValue = `plugin:${slug}`;
     const mid = await getSettings("middleware");
+    const useGate = mid.settingsGate;
+    const useGateStr = typeof useGate === "string" ? useGate.trim() : "";
     if (merged.useAsSettingsGate === "true") {
       await setSettings("middleware", { ...mid, settingsGate: gateValue });
-    } else if (mid.settingsGate?.trim() === gateValue) {
+    } else if (useGateStr === gateValue) {
       await setSettings("middleware", { ...mid, settingsGate: "" });
     }
   }
@@ -100,11 +106,11 @@ router.post("/api/extensions/:id/settings", async (c) => {
   if (engineInstance?.configure) engineInstance.configure(merged);
 
   const commandInstance = getCommandInstanceById(id);
-  if (commandInstance?.configure) commandInstance.configure(merged);
+  if (commandInstance?.configure) commandInstance.configure(merged as Record<string, string>);
 
   if (id.startsWith("slot-")) {
     const slotPlugin = getSlotPluginById(id.slice(5));
-    if (slotPlugin?.configure) slotPlugin.configure(merged);
+    if (slotPlugin?.configure) slotPlugin.configure(merged as Record<string, string>);
   }
 
   return c.json({ ok: true });

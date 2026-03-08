@@ -1,5 +1,5 @@
 import type { SearchEngine, SearchResult, SettingField, TimeFilter } from "../types";
-import { searchNews, DEFAULT_NEWS_FEED_URLS } from "../news-rss";
+import { searchNews } from "../news-rss";
 
 export class RssNewsEngine implements SearchEngine {
   name = "RSS Feeds";
@@ -15,25 +15,52 @@ export class RssNewsEngine implements SearchEngine {
     },
   ];
 
-  private feedUrls: string[] = [...DEFAULT_NEWS_FEED_URLS];
+  private feedUrls: string[] = [];
 
-  configure(settings: Record<string, string>): void {
-    const raw = (settings.urls ?? "").trim();
-    if (!raw) {
-      this.feedUrls = [...DEFAULT_NEWS_FEED_URLS];
-      return;
-    }
-    const parsed = raw
-      .split("\n")
-      .map((u) => u.trim())
-      .filter((u) => {
+  configure(settings: Record<string, string | string[]>): void {
+    const urlsVal = settings.urls;
+    if (Array.isArray(urlsVal)) {
+      this.feedUrls = urlsVal.filter((u) => {
+        if (typeof u !== "string" || !u.startsWith("http")) return false;
         try {
-          return u.startsWith("http") && !!new URL(u);
+          new URL(u);
+          return true;
         } catch {
           return false;
         }
       });
-    this.feedUrls = parsed.length > 0 ? parsed : [...DEFAULT_NEWS_FEED_URLS];
+      return;
+    }
+    const raw = (urlsVal ?? "").trim();
+    let parsed: string[] = [];
+    if (raw) {
+      try {
+        const json = JSON.parse(raw) as unknown;
+        if (Array.isArray(json)) {
+          parsed = (json as unknown[]).filter((u): u is string => {
+            if (typeof u !== "string" || !u.startsWith("http")) return false;
+            try {
+              new URL(u);
+              return true;
+            } catch {
+              return false;
+            }
+          });
+        }
+      } catch {
+        parsed = raw
+          .split("\n")
+          .map((u) => u.trim())
+          .filter((u) => {
+            try {
+              return u.startsWith("http") && !!new URL(u);
+            } catch {
+              return false;
+            }
+          });
+      }
+    }
+    this.feedUrls = parsed;
   }
 
   async executeSearch(

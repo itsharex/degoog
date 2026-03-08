@@ -24,8 +24,9 @@ export interface ExtensionMeta {
   type: "plugin" | "engine" | "command" | "theme";
   configurable: boolean;
   settingsSchema: SettingField[];
-  settings: Record<string, string>;
+  settings: Record<string, string | string[]>;
   defaultEnabled?: boolean;
+  defaultFeedUrls?: string[];
 }
 
 export type EngineFetch = (
@@ -41,7 +42,7 @@ export interface SearchEngine {
   name: string;
   bangShortcut?: string;
   settingsSchema?: SettingField[];
-  configure?(settings: Record<string, string>): void;
+  configure?(settings: Record<string, string | string[]>): void;
   executeSearch(
     query: string,
     page?: number,

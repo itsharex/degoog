@@ -18,6 +18,7 @@ import { GoogleVideosEngine } from "./google-videos";
 import { BingVideosEngine } from "./bing-videos";
 import { RssNewsEngine } from "./rss";
 import { BraveNewsEngine } from "./brave-news";
+import { DEFAULT_NEWS_FEED_URLS } from "../news-rss";
 import { BingNewsEngine } from "./bing-news";
 export type EngineSearchType = "web" | "images" | "videos" | "news";
 
@@ -211,7 +212,11 @@ async function hasRequiredConfig(
   const requiredKeys = schema.filter((f) => f.required).map((f) => f.key);
   if (requiredKeys.length === 0) return true;
   const stored = await getSettings(engineId);
-  return requiredKeys.every((k) => (stored[k] ?? "").trim() !== "");
+  return requiredKeys.every((k) => {
+    const v = stored[k];
+    if (Array.isArray(v)) return v.length > 0;
+    return typeof v === "string" && v.trim() !== "";
+  });
 }
 
 export function getEnginesForSearchType(
@@ -307,6 +312,7 @@ export async function getEngineExtensionMeta(): Promise<ExtensionMeta[]> {
       settingsSchema: schema,
       settings: maskedSettings,
       defaultEnabled: defaults[def.id],
+      ...(def.id === "rss-news" ? { defaultFeedUrls: DEFAULT_NEWS_FEED_URLS } : {}),
     });
   }
 

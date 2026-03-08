@@ -58,7 +58,10 @@ export async function outgoingFetch(
 ): Promise<Response> {
   const settings = await getSettings(DEGOOG_SETTINGS_ID);
   const enabled = settings.proxyEnabled === "true";
-  const urls = parseProxyUrls(settings.proxyUrls ?? "");
+  const proxyUrlsRaw = settings.proxyUrls;
+  const urls = parseProxyUrls(
+    typeof proxyUrlsRaw === "string" ? proxyUrlsRaw : "",
+  );
 
   const useProxy = enabled && urls.length > 0;
   const opts: RequestInit = {

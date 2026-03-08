@@ -131,6 +131,7 @@ window.addEventListener("extensions-saved", async () => {
       headers: getStoredToken() ? { "x-settings-token": getStoredToken() } : {},
     });
     const allExtensions = await res.json();
+    await initEnginesTab(allExtensions);
     initPluginsTab(allExtensions);
   } catch (_) {}
 });

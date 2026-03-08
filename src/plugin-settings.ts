@@ -5,7 +5,9 @@ const SETTINGS_PATH =
   process.env.DEGOOG_PLUGIN_SETTINGS_FILE ??
   join(process.cwd(), "data", "plugin-settings.json");
 
-type PluginSettingsStore = Record<string, Record<string, string>>;
+export type SettingValue = string | string[];
+
+type PluginSettingsStore = Record<string, Record<string, SettingValue>>;
 
 let cache: PluginSettingsStore | null = null;
 
@@ -25,14 +27,14 @@ async function persist(store: PluginSettingsStore): Promise<void> {
   await writeFile(SETTINGS_PATH, JSON.stringify(store, null, 2), "utf-8");
 }
 
-export async function getSettings(id: string): Promise<Record<string, string>> {
+export async function getSettings(id: string): Promise<Record<string, SettingValue>> {
   const store = await load();
   return store[id] ?? {};
 }
 
 export async function setSettings(
   id: string,
-  values: Record<string, string>,
+  values: Record<string, SettingValue>,
 ): Promise<void> {
   const store = await load();
   store[id] = { ...(store[id] ?? {}), ...values };
@@ -54,10 +56,10 @@ export async function removeSettings(id: string): Promise<void> {
 }
 
 export function maskSecrets(
-  settings: Record<string, string>,
+  settings: Record<string, SettingValue>,
   schema: { key: string; secret?: boolean }[],
-): Record<string, string> {
-  const masked: Record<string, string> = {};
+): Record<string, SettingValue> {
+  const masked: Record<string, SettingValue> = {};
   for (const [key, value] of Object.entries(settings)) {
     const field = schema.find((f) => f.key === key);
     masked[key] = field?.secret ? (value ? "__SET__" : "") : value;
@@ -66,11 +68,11 @@ export function maskSecrets(
 }
 
 export function mergeSecrets(
-  incoming: Record<string, string>,
-  existing: Record<string, string>,
+  incoming: Record<string, SettingValue>,
+  existing: Record<string, SettingValue>,
   schema: { key: string; secret?: boolean }[],
-): Record<string, string> {
-  const merged: Record<string, string> = { ...existing };
+): Record<string, SettingValue> {
+  const merged: Record<string, SettingValue> = { ...existing };
   for (const [key, value] of Object.entries(incoming)) {
     const field = schema.find((f) => f.key === key);
     if (field?.secret) {
