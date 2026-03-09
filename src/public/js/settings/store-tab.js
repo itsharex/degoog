@@ -31,10 +31,11 @@ function formatRelativeTime(iso) {
   }
 }
 
-function renderRepoList(repos, getToken, onRefresh) {
+function renderRepoList(repos, getToken, onRefresh, statusByUrl) {
   if (!repos.length) {
     return "<p class=\"store-empty\">No repositories added. Add a git repository URL to browse its plugins, themes, and engines.</p>";
   }
+  const statusMap = statusByUrl || {};
   let html = "<ul class=\"store-repo-list\">";
   for (const repo of repos) {
     const err = repo.error ? `<span class=\"store-repo-error\">${escapeHtml(repo.error)}</span>` : "";
@@ -42,12 +43,18 @@ function renderRepoList(repos, getToken, onRefresh) {
     const removeBtn = isOfficial
       ? ""
       : `<button class="store-btn store-btn-remove" type="button" data-url="${escapeHtml(repo.url)}">Remove</button>`;
+    const normUrl = normalizeRepoUrl(repo.url);
+    const behind = statusMap[normUrl] != null ? statusMap[normUrl] : (statusMap[repo.url] != null ? statusMap[repo.url] : 0);
+    const updatesNote = behind > 0
+      ? `<span class="store-repo-updates-note" title="Refresh to get latest">${escapeHtml(String(behind))} update${behind !== 1 ? "s" : ""} available — refresh to get latest</span>`
+      : "";
     html += `
       <li class="store-repo-item" data-url="${escapeHtml(repo.url)}">
         <div class="store-repo-url">${escapeHtml(repo.url)}</div>
         <div class="store-repo-meta">
           Last updated: ${escapeHtml(formatRelativeTime(repo.lastFetched))}
           ${err}
+          ${updatesNote}
         </div>
         <div class="store-repo-actions">
           <button class="store-btn store-btn-refresh" type="button" data-url="${escapeHtml(repo.url)}">Refresh</button>
@@ -117,6 +124,7 @@ export async function initStoreTab(container, getToken) {
 
   let repos = [];
   let items = [];
+  let repoStatusByUrl = {};
   let typeFilter = "all";
   let searchQuery = "";
 
@@ -125,6 +133,19 @@ export async function initStoreTab(container, getToken) {
     if (!res.ok) return;
     const data = await res.json();
     repos = data.repos || [];
+  }
+
+  async function loadReposStatus() {
+    const res = await fetch("/api/store/repos/status", { headers: storeHeaders(getToken) });
+    if (!res.ok) return;
+    const data = await res.json();
+    const statuses = data.statuses || [];
+    const map = {};
+    for (const s of statuses) {
+      map[normalizeRepoUrl(s.url)] = s.behind;
+      map[s.url] = s.behind;
+    }
+    repoStatusByUrl = map;
   }
 
   async function loadItems() {
@@ -138,7 +159,7 @@ export async function initStoreTab(container, getToken) {
     const repoSection = container.querySelector(".store-repos-section");
     if (repoSection) {
       const listEl = repoSection.querySelector(".store-repo-list-wrap");
-      if (listEl) listEl.innerHTML = renderRepoList(repos, getToken, render);
+      if (listEl) listEl.innerHTML = renderRepoList(repos, getToken, render, repoStatusByUrl);
     }
     const catalogSection = container.querySelector(".store-catalog-section");
     if (catalogSection) {
@@ -200,6 +221,7 @@ export async function initStoreTab(container, getToken) {
     await loadRepos();
     await loadItems();
     render();
+    loadReposStatus().then(() => render());
   }
 
   async function handleRemove(url) {
@@ -373,6 +395,7 @@ export async function initStoreTab(container, getToken) {
       await loadRepos();
       await loadItems();
       render();
+      loadReposStatus().then(() => render());
     } finally {
       btn.disabled = false;
     }
@@ -426,6 +449,7 @@ export async function initStoreTab(container, getToken) {
     await loadRepos();
     await loadItems();
     render();
+    loadReposStatus().then(() => render());
   } catch {
     container.querySelector(".store-repo-list-wrap").innerHTML = "<p class=\"store-empty\">Failed to load store.</p>";
   }

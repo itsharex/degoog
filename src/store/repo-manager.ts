@@ -457,6 +457,74 @@ async function ensureOfficialRepo(): Promise<void> {
   }
 }
 
+const FETCH_TIMEOUT_MS = 15_000;
+
+async function getBehindCount(repoPath: string): Promise<number> {
+  let remoteRef = "origin/HEAD";
+  for (const ref of ["origin/HEAD", "origin/main", "origin/master"]) {
+    const proc = Bun.spawn(["git", "-C", repoPath, "rev-parse", ref], {
+      stdout: "ignore",
+      stderr: "ignore",
+    });
+    const exit = await proc.exited;
+    if (exit === 0) {
+      remoteRef = ref;
+      break;
+    }
+  }
+  const countProc = Bun.spawn(
+    ["git", "-C", repoPath, "rev-list", "--count", `HEAD..${remoteRef}`],
+    { stdout: "pipe", stderr: "ignore" },
+  );
+  const exit = await countProc.exited;
+  if (exit !== 0) return 0;
+  const out = await new Response(countProc.stdout).text();
+  const n = parseInt(out.trim(), 10);
+  return Number.isNaN(n) ? 0 : Math.max(0, n);
+}
+
+export interface RepoStatus {
+  url: string;
+  behind: number;
+}
+
+export async function getReposStatus(): Promise<RepoStatus[]> {
+  const data = await readReposData();
+  const storeDir = getStoreDir();
+  const results: RepoStatus[] = [];
+
+  for (const repo of data.repos) {
+    const repoPath = join(storeDir, repo.localPath);
+    try {
+      const fetchProc = Bun.spawn(["git", "-C", repoPath, "fetch", "origin"], {
+        stdout: "ignore",
+        stderr: "pipe",
+      });
+      await Promise.race([
+        fetchProc.exited,
+        new Promise<number>((_, rej) =>
+          setTimeout(() => {
+            fetchProc.kill();
+            rej(new Error("Fetch timed out"));
+          }, FETCH_TIMEOUT_MS),
+        ),
+      ]);
+    } catch {
+      results.push({ url: repo.url, behind: 0 });
+      continue;
+    }
+
+    try {
+      const behind = await getBehindCount(repoPath);
+      results.push({ url: repo.url, behind });
+    } catch {
+      results.push({ url: repo.url, behind: 0 });
+    }
+  }
+
+  return results;
+}
+
 export async function getRepos(): Promise<RepoInfo[]> {
   const data = await readReposData();
   if (data.repos.length === 0) {

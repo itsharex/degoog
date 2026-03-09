@@ -78,8 +78,8 @@
   white-space: nowrap;
 
   &:hover {
-    border-color: $blue;
-    color: $blue;
+    border-color: $primary;
+    color: $primary;
   }
 }
 
@@ -96,8 +96,8 @@
   white-space: nowrap;
 
   &:hover {
-    border-color: $blue;
-    color: $blue;
+    border-color: $primary;
+    color: $primary;
   }
 }
 
@@ -197,7 +197,7 @@
 }
 
 .ext-required {
-  color: $red;
+  color: $danger;
 }
 
 .ext-field-input {
@@ -212,7 +212,7 @@
   width: 100%;
 
   &:focus {
-    border-color: $blue;
+    border-color: $primary;
   }
 
   &::placeholder {
@@ -237,7 +237,7 @@ select.ext-field-input.ext-field-select {
 }
 
 .ext-field-configured-note {
-  color: $green;
+  color: $success;
   font-size: $font-size-small;
   margin: 0;
 }
@@ -254,7 +254,7 @@ select.ext-field-input.ext-field-select {
 
 .ext-configured-badge {
   align-items: center;
-  color: $green;
+  color: $success;
   display: inline-flex;
   font-size: 11px;
   font-weight: 500;
@@ -263,7 +263,7 @@ select.ext-field-input.ext-field-select {
   white-space: nowrap;
 
   &::before {
-    background: $green;
+    background: $success;
     border-radius: 50%;
     content: "";
     display: inline-block;
@@ -334,13 +334,13 @@ select.ext-field-input.ext-field-select {
   padding: 8px 12px;
 
   &:focus {
-    outline: 2px solid $blue;
+    outline: 2px solid $primary;
     outline-offset: 0;
   }
 }
 
 .ext-field-urllist-add-btn {
-  background: $blue;
+  background: $primary;
   border: none;
   border-radius: 6px;
   color: #fff;
@@ -378,7 +378,7 @@ select.ext-field-input.ext-field-select {
   width: 100%;
 
   &:focus {
-    outline: 2px solid $blue;
+    outline: 2px solid $primary;
     outline-offset: 0;
   }
 
@@ -394,7 +394,7 @@ select.ext-field-input.ext-field-select {
 }
 
 .news-rss-save {
-  background: $blue;
+  background: $primary;
   border: none;
   border-radius: 6px;
   color: #fff;
@@ -414,6 +414,6 @@ select.ext-field-input.ext-field-select {
 }
 
 .news-rss-feedback {
-  color: $green;
+  color: $success;
   font-size: $font-size-small;
 }

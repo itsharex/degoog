@@ -40,8 +40,15 @@
 }
 
 .store-repo-error {
-  color: $red;
+  color: $danger;
   margin-left: 8px;
+}
+
+.store-repo-updates-note {
+  display: block;
+  margin-top: 4px;
+  color: $primary;
+  font-weight: 500;
 }
 
 .store-repo-actions {
@@ -70,7 +77,7 @@
   outline: none;
 
   &:focus {
-    border-color: $blue;
+    border-color: $primary;
   }
 
   &::placeholder {
@@ -79,7 +86,7 @@
 }
 
 .store-inline-error {
-  color: $red;
+  color: $danger;
   font-size: $font-size-small;
   min-height: 18px;
 
@@ -104,8 +111,8 @@
   transition: color $transition-fast, border-color $transition-fast;
 
   &:hover:not(:disabled) {
-    border-color: $blue;
-    color: $blue;
+    border-color: $primary;
+    color: $primary;
   }
 
   &:disabled {
@@ -115,26 +122,26 @@
 }
 
 .store-btn-add {
-  background: $blue;
-  border-color: $blue;
+  background: $primary;
+  border-color: $primary;
   color: #fff;
 
   &:hover:not(:disabled) {
-    background: $blue-hover;
-    border-color: $blue-hover;
+    background: $primary-hover;
+    border-color: $primary-hover;
     color: #fff;
   }
 }
 
 .store-btn-add-confirm {
-  background: $blue;
-  border-color: $blue;
+  background: $primary;
+  border-color: $primary;
   color: #fff;
   padding: 8px 16px;
 
   &:hover:not(:disabled) {
-    background: $blue-hover;
-    border-color: $blue-hover;
+    background: $primary-hover;
+    border-color: $primary-hover;
     color: #fff;
   }
 }
@@ -169,8 +176,8 @@
   }
 
   &.active {
-    border-color: $blue;
-    color: $blue;
+    border-color: $primary;
+    color: $primary;
     font-weight: 500;
   }
 }
@@ -188,7 +195,7 @@
   outline: none;
 
   &:focus {
-    border-color: $blue;
+    border-color: $primary;
   }
 
   &::placeholder {
@@ -338,7 +345,7 @@
   cursor: pointer;
 
   &:focus {
-    outline: 2px solid $blue;
+    outline: 2px solid $primary;
     outline-offset: 2px;
   }
 }

@@ -22,7 +22,7 @@
   }
 
   &.selected {
-    outline: 3px solid $blue;
+    outline: 3px solid $primary;
     outline-offset: -3px;
   }
 }
@@ -176,14 +176,14 @@
 .media-preview-visit {
   display: inline-block;
   padding: 8px 16px;
-  background: $blue;
+  background: $primary;
   color: #fff;
   border-radius: 20px;
   text-decoration: none;
   font-size: $font-size-base;
 
   &:hover {
-    background: $blue-hover;
+    background: $primary-hover;
   }
 }
 
@@ -214,7 +214,7 @@
   }
 
   &.selected {
-    outline: 3px solid $blue;
+    outline: 3px solid $primary;
     outline-offset: -3px;
   }
 }

@@ -4,6 +4,7 @@ import { validateSettingsToken } from "./settings-auth";
 import { resolve, relative } from "path";
 import {
   getRepos,
+  getReposStatus,
   addRepo,
   removeRepo,
   refreshRepo,
@@ -29,6 +30,14 @@ router.get("/api/store/repos", async (c) => {
   }
   const repos = await getRepos();
   return c.json({ repos });
+});
+
+router.get("/api/store/repos/status", async (c) => {
+  if (!(await validateSettingsToken(getStoreToken(c)))) {
+    return c.json({ error: "Unauthorized" }, 401);
+  }
+  const statuses = await getReposStatus();
+  return c.json({ statuses });
 });
 
 router.post("/api/store/repos", async (c) => {

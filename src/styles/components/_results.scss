@@ -179,7 +179,7 @@
   padding: 4px 10px;
   font-size: $font-size-small;
   font-family: $font-family;
-  color: $blue;
+  color: $primary;
   background: var(--bg-light);
   border-radius: 6px;
   cursor: pointer;
@@ -351,7 +351,7 @@
     width: 8px;
     height: 8px;
     border-radius: 50%;
-    background: $blue;
+    background: $primary;
     animation: dot-pulse 1.2s ease-in-out infinite;
 
     &:nth-child(2) { animation-delay: 0.15s; }
@@ -388,7 +388,7 @@
   border-radius: 50%;
   text-decoration: none;
   font-size: 14px;
-  color: $blue;
+  color: $primary;
   cursor: pointer;
   transition: background $transition-fast;
 
@@ -408,7 +408,7 @@
 }
 
 .pagination-nav {
-  color: $blue;
+  color: $primary;
   text-decoration: none;
   font-size: $font-size-base;
   cursor: pointer;
@@ -461,7 +461,7 @@
   line-height: 1.5;
 
   a {
-    color: $blue;
+    color: $primary;
     text-decoration: none;
 
     &:hover {
