@@ -14,8 +14,8 @@ describe("routes/store", () => {
     const res = await storeRouter.request("http://localhost/api/store/items");
     expect([200, 401]).toContain(res.status);
     if (res.status === 200) {
-      const body = await res.json();
-      expect(Array.isArray(body)).toBe(true);
+      const body = (await res.json()) as { items: unknown };
+      expect(Array.isArray(body.items)).toBe(true);
     }
   });
 });
