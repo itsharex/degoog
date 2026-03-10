@@ -85,7 +85,7 @@ function _showAuthGate(): void {
     });
 }
 
-function _switchSettingsTab(value: string): void {
+function _switchSettingsTab(value: string, updateUrl = true): void {
   document
     .querySelectorAll<HTMLElement>(".settings-tab-panel")
     .forEach((p) => p.classList.remove("active"));
@@ -97,6 +97,11 @@ function _switchSettingsTab(value: string): void {
     "settings-tab-select",
   ) as HTMLSelectElement | null;
   if (select) select.value = value;
+
+  if (updateUrl) {
+    const path = value === "general" ? "/settings" : `/settings/${value}`;
+    window.history.replaceState({}, "", path);
+  }
 }
 
 function _initTabs(): void {
@@ -110,6 +115,17 @@ function _initTabs(): void {
       _switchSettingsTab(btn.dataset.tab ?? "general"),
     );
   });
+
+  // Load tab from URL path
+  const path = window.location.pathname;
+  const match = path.match(/^\/settings\/(\w+)$/);
+  if (match) {
+    const tab = match[1];
+    const validTabs = ["general", "engines", "plugins", "themes", "store"];
+    if (validTabs.includes(tab)) {
+      _switchSettingsTab(tab, false);
+    }
+  }
 }
 
 async function _initSettings(): Promise<void> {

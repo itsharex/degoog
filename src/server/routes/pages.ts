@@ -83,6 +83,18 @@ router.get("/settings", async (c) => {
   return c.html(await buildPage("settings.html"));
 });
 
+router.get("/settings/:tab", async (c) => {
+  const tab = c.req.param("tab");
+  const validTabs = ["general", "engines", "plugins", "themes", "store"];
+  if (!validTabs.includes(tab)) {
+    return c.redirect("/settings", 302);
+  }
+  if (await shouldServeSettingsGate(c)) {
+    return c.html(await buildPage("settings-gate.html"));
+  }
+  return c.html(await buildPage("settings.html"));
+});
+
 router.get("/api/engines", (c) => {
   return c.json({
     engines: getEngineRegistry(),
