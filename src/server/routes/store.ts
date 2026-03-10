@@ -32,7 +32,7 @@ function isValidType(type: string): type is ItemType {
   return (VALID_TYPES as readonly string[]).includes(type);
 }
 
-router.get("/api/store/*", async (c) => {
+router.get("/api/store/repos", async (c) => {
   if (!(await validateSettingsToken(getStoreToken(c))))
     return c.json({ error: "Unauthorized" }, 401);
   const repos = await getRepos();
