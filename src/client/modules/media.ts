@@ -6,6 +6,8 @@ import type { ScoredResult } from "../types";
 
 let mediaObserver: IntersectionObserver | null = null;
 let appendMediaCardsRef: ((grid: HTMLElement, results: ScoredResult[], type: "image" | "video") => void) | null = null;
+let currentMediaIdx = -1;
+let currentCardSelector = "";
 
 export function registerAppendMediaCards(
   fn: (grid: HTMLElement, results: ScoredResult[], type: "image" | "video") => void,
@@ -79,6 +81,9 @@ export function openMediaPreview(item: ScoredResult, idx: number, cardSelector: 
   const img = document.getElementById("media-preview-img") as HTMLImageElement | null;
   const info = document.getElementById("media-preview-info");
 
+  currentMediaIdx = idx;
+  currentCardSelector = cardSelector;
+
   if (img) img.src = proxyImageUrl(item.thumbnail || "") || "";
   if (info) {
     info.innerHTML = `
@@ -92,6 +97,26 @@ export function openMediaPreview(item: ScoredResult, idx: number, cardSelector: 
 
   document.querySelectorAll<HTMLElement>(cardSelector).forEach((c) => c.classList.remove("selected"));
   document.querySelector<HTMLElement>(`${cardSelector}[data-idx="${idx}"]`)?.classList.add("selected");
+
+  _updateNavButtons();
+}
+
+function _updateNavButtons(): void {
+  const prevBtn = document.getElementById("media-preview-prev");
+  const nextBtn = document.getElementById("media-preview-next");
+  if (prevBtn) (prevBtn as HTMLButtonElement).disabled = currentMediaIdx <= 0;
+  if (nextBtn) (nextBtn as HTMLButtonElement).disabled = currentMediaIdx >= state.currentResults.length - 1;
+}
+
+export function navigateMediaPreview(direction: -1 | 1): void {
+  const newIdx = currentMediaIdx + direction;
+  if (newIdx < 0 || newIdx >= state.currentResults.length) return;
+  const item = state.currentResults[newIdx];
+  if (!item) return;
+  openMediaPreview(item, newIdx, currentCardSelector);
+
+  const card = document.querySelector<HTMLElement>(`${currentCardSelector}[data-idx="${newIdx}"]`);
+  if (card) card.scrollIntoView({ block: "nearest", behavior: "smooth" });
 }
 
 export function closeMediaPreview(): void {
@@ -99,4 +124,5 @@ export function closeMediaPreview(): void {
   document.querySelectorAll<HTMLElement>(".image-card, .video-card").forEach((c) =>
     c.classList.remove("selected"),
   );
+  currentMediaIdx = -1;
 }

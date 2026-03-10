@@ -15,7 +15,7 @@ const _groupByType = (engines: ExtensionMeta[]): Record<string, ExtensionMeta[]>
   const groups: Record<string, ExtensionMeta[]> = {};
   for (const engine of engines) {
     const type = engine.description.split(" ")[0].toLowerCase();
-    const label = SEARCH_TYPE_LABELS[type] || "Other";
+    const label = SEARCH_TYPE_LABELS[type] || type.charAt(0).toUpperCase() + type.slice(1);
     if (!groups[label]) groups[label] = [];
     groups[label].push(engine);
   }

@@ -45,9 +45,9 @@ export interface RepoPackageJson {
   name?: string;
   description?: string;
   author?: string;
-  plugins?: Array<{ path: string; name: string; description?: string; version?: string; type?: string }>;
-  themes?: Array<{ path: string; name: string; description?: string; version?: string }>;
-  engines?: Array<{ path: string; name: string; description?: string; version?: string }>;
+  plugins?: Array<{ path: string; name: string; description?: string; version?: string; type?: string; dependencies?: string[] }>;
+  themes?: Array<{ path: string; name: string; description?: string; version?: string; dependencies?: string[] }>;
+  engines?: Array<{ path: string; name: string; description?: string; version?: string; dependencies?: string[] }>;
 }
 
 export interface AuthorJson {

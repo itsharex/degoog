@@ -27,12 +27,6 @@
     return out.join("\n\n");
   }
 
-  function escapeHtml(s) {
-    const d = document.createElement("div");
-    d.textContent = s;
-    return d.innerHTML;
-  }
-
   function autoResize(textarea) {
     textarea.style.height = "auto";
     textarea.style.height = textarea.scrollHeight + "px";
@@ -83,7 +77,7 @@
     });
   }
 
-  async function sendMessage(input, messagesEl, chatWrap) {
+  async function sendMessage(input, messagesEl) {
     const text = input.value.trim();
     if (!text) return;
 
