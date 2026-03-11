@@ -47,7 +47,7 @@ jobs:
         run: bun run typecheck
 
       - name: Run tests
-        run: LOGGER= bun test $(find tests -name '*.test.ts' ! -path '*/stress/*' | sort | tr '\\n' ' ')
+        run: yarn test
 
       - name: Run stress tests
-        run: LOGGER=debug bun test tests/stress
+        run: yarn test:rate-limit
