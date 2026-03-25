@@ -1,11 +1,6 @@
 const CACHE_NAME = "degoog-v__APP_VERSION__";
 
 self.addEventListener("install", (event) => {
-  event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) =>
-      cache.add("/public/favicon/site.webmanifest")
-    ).catch(() => {})
-  );
   self.skipWaiting();
 });
 
@@ -25,7 +20,8 @@ self.addEventListener("fetch", (event) => {
   const sameOrigin = url.origin === self.location.origin;
   const isPublicAsset =
     event.request.method === "GET" && url.pathname.startsWith("/public/");
-  if (!sameOrigin || !isPublicAsset) return;
+  const isManifest = url.pathname.endsWith(".webmanifest");
+  if (!sameOrigin || !isPublicAsset || isManifest) return;
 
   event.respondWith(
     fetch(event.request)
